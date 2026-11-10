@@ -113,6 +113,19 @@ The following functions are **not** part of this system for Milestone 1. They ar
 
 <!-- Owner: Mina. Issue #8 -->
 
+Different stakeholders read this SRS for different purposes:
+
+| Reader category | Stakeholders | What they need from this document | Main sections |
+|---|---|---|---|
+| Client and evaluator | Course instructor (Dr. Bestoon Hussien) | Confirm that the system meets the educational and business objectives of the milestone. | 1, 7 |
+| End users | Bank customers | Confirm that the services they need are described correctly. | 1, 3 |
+| Product Owner | Mina | Keep scope, priorities and acceptance criteria consistent with the backlog. | 1, 2, 3 |
+| ScrumMaster | Aiman | Plan the sprint, manage change control and maintain traceability. | 7 |
+| System architect and security lead | Rozyar | Design authentication, security controls and the UML model. | 4.1, 5.1, 6 |
+| Software developers | Rozi, Sahand, Ara | Use the system requirements as the blueprint for back end, database and front end. | 4, 6 |
+| Test engineers | Quality assurance and the automated JUnit suite | Derive test cases from requirements and acceptance criteria. | 4, 5, 7 |
+| Security and compliance auditors | Bank auditors (external) | Check encryption, password storage and the immutable audit trail. | 5.1, 5.4 |
+
 ## 3. User Requirements Definition
 
 <!-- Owner: Ara. Issue #9 -->
