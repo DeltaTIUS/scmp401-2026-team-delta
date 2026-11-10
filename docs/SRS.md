@@ -66,6 +66,19 @@ Example: a Savings Account whose lowest daily balance in a month is B = $1,200.0
 
 ### 1.3 Out of Scope
 
+The following functions are **not** part of this system for Milestone 1. They are excluded to keep the sprint focused on the five user requirements.
+
+| Excluded function | Reason |
+|---|---|
+| Account creation by bank staff or tellers, and other back-office administration | Product Owner decision: in Milestone 1, customers create their own accounts. |
+| Transfers between accounts, to other customers or to other banks | Not one of the five user requirements. |
+| Bill payments, cheques and card payments | Not one of the five user requirements. |
+| Loans, credit cards and credit underwriting | Separate banking products with their own regulation. |
+| Physical cash handling: ATM hardware, cash dispensing and vault management | The system records a withdrawal in the ledger; handing over physical cash is outside the software boundary. |
+| Foreign currency accounts and currency exchange | All amounts are in USD. |
+| Closing accounts and changing interest rates or overdraft limits | Rates and limits are fixed values in this SRS (r = 2.5%, L_max = $500.00, B_min = $100.00). |
+| Native mobile applications | The product is a web application. |
+
 ### 1.4 Definitions, Acronyms, and Abbreviations
 
 ## 2. Stakeholders and Reader Perspectives
