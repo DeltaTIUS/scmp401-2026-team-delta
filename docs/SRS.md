@@ -81,6 +81,34 @@ The following functions are **not** part of this system for Milestone 1. They ar
 
 ### 1.4 Definitions, Acronyms, and Abbreviations
 
+| Term | Meaning |
+|---|---|
+| A | The amount of a deposit or withdrawal. Always greater than $0.00. |
+| AES-256 | Advanced Encryption Standard with a 256-bit key, used to protect stored data. |
+| Atomic transaction | A transaction that either completes fully or has no effect at all. |
+| B | The lowest daily balance of a Savings Account during a month, used for interest. |
+| B_min | The minimum balance a Savings Account must keep: $100.00. |
+| BCrypt | A slow, salted password hashing algorithm. This system uses cost factor 12. |
+| CI | Continuous Integration: tests run automatically on every pull request (GitHub Actions). |
+| Current Account | A transactional account for everyday spending, with an overdraft facility. |
+| ERR_INSUFFICIENT_FUNDS | The error the system returns when a withdrawal would break the account's balance rule. |
+| IEEE 830 | The IEEE recommended practice for software requirements specifications that this document follows. |
+| JUnit | The Java unit testing framework used for the automated tests named in the RTM. |
+| L_max | The overdraft limit of a Current Account: $500.00. |
+| Ledger | The immutable, append-only record of every transaction. Entries are never edited or deleted. |
+| MFA | Multi-Factor Authentication: proving identity with two or more factors, here a password and a one-time code. |
+| NFR | Non-Functional Requirement: a quality of the whole system, such as speed, security or availability. |
+| OTP | One-Time Password (one-time verification code): a short code valid for a single login. |
+| r | The annual interest rate of a Savings Account: 2.5%. |
+| Rollback | Undoing every change of a failed transaction, so the data returns to its state before the transaction. |
+| RTM | Requirements Traceability Matrix: the table linking each user requirement to system requirements, use cases and tests. |
+| Savings Account | An interest-bearing account with a minimum balance and no overdraft. |
+| SR | System Requirement: a detailed technical requirement with inputs, outputs, preconditions, postconditions and exceptions. |
+| SRS | Software Requirements Specification: this document. |
+| TLS 1.3 | Transport Layer Security version 1.3, used to encrypt all traffic between browser and server. |
+| UC | Use Case: a goal an actor reaches by interacting with the system, shown in the UML diagram. |
+| UR | User Requirement: a requirement written in natural language from the customer's point of view. |
+
 ## 2. Stakeholders and Reader Perspectives
 
 <!-- Owner: Mina. Issue #8 -->
