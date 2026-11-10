@@ -127,3 +127,9 @@ Every system requirement appears in at least one row. SR-2.1 and SR-2.3 appear t
 The test cases are derived from the acceptance criteria of the user stories. They remain disabled, and are reported as skipped by the CI pipeline, until the features are implemented in a later milestone.
 
 ### 7.2 Change Control
+
+1. A change is proposed as a GitHub issue stating the affected requirement IDs and the reason.
+2. The Product Owner accepts or rejects it, and sets its priority in the backlog.
+3. The change is made on a `feature/*` branch and merged through a reviewed pull request.
+4. The same pull request updates every affected row of the RTM and the affected test classes.
+5. The revision history in the preface records the new version.
