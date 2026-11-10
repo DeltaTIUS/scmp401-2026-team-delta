@@ -32,6 +32,38 @@ This document is the agreement between the stakeholders listed in Section 2: the
 
 ### 1.2 Scope and System Boundary
 
+The Secure Banking Application covers the web front end and the application logic used by bank customers. Everything inside the boundary is built by Team Delta. The three actors below lie **outside** the system boundary and interact with it:
+
+| Actor | Type | Role |
+|---|---|---|
+| Customer | Primary actor | Starts every use case through the web interface. |
+| Auth Server | Secondary actor | Verifies credentials and one-time verification codes. |
+| Core Banking Database | Secondary actor | Stores customers, accounts and the immutable transaction ledger. |
+
+**In scope** for Milestone 1 (one function per user requirement):
+
+| Function | User requirement |
+|---|---|
+| Secure log in with password and one-time code (multi-factor authentication), including account lockout after repeated failures | UR-1 |
+| Customer self-service creation of Current and Savings Accounts | UR-2 |
+| Balance inquiry for the customer's own accounts | UR-3 |
+| Atomic deposits | UR-4 |
+| Atomic withdrawals, following the rules of each account type | UR-5 |
+
+All money amounts are in US dollars (USD).
+
+**Current Accounts and Savings Accounts.** The system supports two account types with different rules:
+
+| Rule | Current Account | Savings Account |
+|---|---|---|
+| Purpose | Everyday spending | Saving money and earning interest |
+| Overdraft | Allowed down to L_max = $500.00 (lowest balance −$500.00) | Not allowed |
+| Interest | None | I = B × (r / 12) on the last calendar day of each month, r = 2.5% |
+| Minimum balance | None | B_min = $100.00 |
+| Withdrawal allowed when | Balance + 500.00 ≥ A | Balance − A ≥ 100.00 |
+
+Example: a Savings Account whose lowest daily balance in a month is B = $1,200.00 earns I = 1,200.00 × (0.025 / 12) = $2.50 that month.
+
 ### 1.3 Out of Scope
 
 ### 1.4 Definitions, Acronyms, and Abbreviations
