@@ -76,6 +76,11 @@
 
 <!-- Owner: Aiman. Issue #13 -->
 
+| NFR Category | Metric Property | Target Quantitative Requirement | Validation Method |
+|---|---|---|---|
+| Organizational | Automated testing | 100% of pull requests shall pass the automated JUnit suite before merge. | GitHub Actions CI pipeline |
+| Organizational | Peer review | 100% of changes to `main` and `develop` shall be merged through a pull request with at least one approval from the ScrumMaster or System Architect. | GitHub branch protection rules and pull request history |
+
 ### 5.4 External: Legal and Audit Trail
 
 <!-- Owner: Sahand. Issue #12 -->
