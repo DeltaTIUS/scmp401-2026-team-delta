@@ -154,6 +154,20 @@ Different stakeholders read this SRS for different purposes:
 
 <!-- Owner: Rozi. Issue #11. SR-3.1, SR-3.2, SR-3.3 -->
 
+All three transactions in this section need an authenticated session (UC-01). A session expires after 15 minutes of inactivity (Section 5.1). SR-3.1 and SR-3.2 are atomic. The balance check, the balance update and the ledger entry run as one database transaction, so either all of them take effect or none does. While the transaction runs, the account record is locked. Two transactions on the same account are therefore processed one after the other and cannot both pass the balance check.
+
+**SR-3.1 [Atomic Withdrawal]:** The system shall process a withdrawal of amount A from a customer's own account as a single atomic transaction, and shall allow it only if the balance rule of the account type is met.
+
+| Field | Specification |
+|---|---|
+| Inputs | Session token; Account ID; withdrawal amount A in USD. |
+| Processing | 1. Check that the session is valid and A > $0.00. 2. Start a database transaction and lock the account record. 3. Read the account type and balance (Verify Balance). 4. Apply the rule of the account type. Current Account (SR-2.1): allowed if Balance + L_max ≥ A, with L_max = $500.00. Savings Account (SR-2.3): allowed if Balance − A ≥ B_min, with B_min = $100.00. 5. If allowed: set Balance_new = Balance_old − A, append a ledger entry (Record Ledger Entry) and commit. 6. If not allowed: abort and roll back. |
+| Outputs | Success: confirmation with the amount withdrawn and the new balance. Failure: an error code and message (see Exceptions). |
+| Preconditions | The customer is authenticated (UC-01) and the session is valid. The account belongs to the customer. Account status = ACTIVE. |
+| Postconditions | Success: Balance_new = Balance_old − A, and exactly one immutable ledger entry is appended with timestamp, User ID, Account ID, type WITHDRAWAL, amount A and the new balance (audit rules in Section 5.4). Failure: the balance and the ledger are exactly as they were before the request. |
+| Exceptions | Insufficient funds (step 4 fails for either account type): the transaction is aborted and rolled back, and the system returns ERR_INSUFFICIENT_FUNDS (Display Overdraft Warning, UC-03). A ≤ $0.00: rejected with ERR_INVALID_AMOUNT before any data is read. Session expired: the customer is sent to Log In and nothing is withdrawn. Account not owned by the customer, or not ACTIVE: rejected with "Account not available" and nothing changes. Database or ledger failure at any step: the whole transaction is rolled back, nothing changes, and "Transaction could not be completed, please try again" is shown. |
+| Examples | Current Account, balance $200.00: $650.00 is allowed (new balance −$450.00); exactly $700.00 is allowed (−$500.00); $701.00 is rejected. Savings Account, balance $500.00: exactly $400.00 is allowed (new balance $100.00); $400.01 is rejected. |
+
 ## 5. Non-Functional Requirements and Metrics
 
 ### 5.1 Product: Security
