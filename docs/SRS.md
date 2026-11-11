@@ -24,15 +24,107 @@
 
 ### 1.1 Purpose of the System
 
+This Software Requirements Specification (SRS) defines the user requirements, system requirements and non-functional requirements of the **Secure Banking Application**, a web-based system that lets bank customers manage their money online.
+
+The system shall give authenticated customers secure digital access to their accounts so they can open Current or Savings Accounts, check their balances, and make deposits and withdrawals that are processed atomically and recorded in an immutable audit trail.
+
+This document is the agreement between the stakeholders listed in Section 2: the evaluator uses it to assess the product, developers use it as the blueprint for implementation, and testers use it to derive automated JUnit tests. Every requirement in it is traceable to a use case and a test in Section 7.
+
 ### 1.2 Scope and System Boundary
+
+The Secure Banking Application covers the web front end and the application logic used by bank customers. Everything inside the boundary is built by Team Delta. The three actors below lie **outside** the system boundary and interact with it:
+
+| Actor | Type | Role |
+|---|---|---|
+| Customer | Primary actor | Starts every use case through the web interface. |
+| Auth Server | Secondary actor | Verifies credentials and one-time verification codes. |
+| Core Banking Database | Secondary actor | Stores customers, accounts and the immutable transaction ledger. |
+
+**In scope** for Milestone 1 (one function per user requirement):
+
+| Function | User requirement |
+|---|---|
+| Secure log in with password and one-time code (multi-factor authentication), including account lockout after repeated failures | UR-1 |
+| Customer self-service creation of Current and Savings Accounts | UR-2 |
+| Balance inquiry for the customer's own accounts | UR-3 |
+| Atomic deposits | UR-4 |
+| Atomic withdrawals, following the rules of each account type | UR-5 |
+
+All money amounts are in US dollars (USD).
+
+**Current Accounts and Savings Accounts.** The system supports two account types with different rules:
+
+| Rule | Current Account | Savings Account |
+|---|---|---|
+| Purpose | Everyday spending | Saving money and earning interest |
+| Overdraft | Allowed down to L_max = $500.00 (lowest balance −$500.00) | Not allowed |
+| Interest | None | I = B × (r / 12) on the last calendar day of each month, r = 2.5% |
+| Minimum balance | None | B_min = $100.00 |
+| Withdrawal allowed when | Balance + 500.00 ≥ A | Balance − A ≥ 100.00 |
+
+Example: a Savings Account whose lowest daily balance in a month is B = $1,200.00 earns I = 1,200.00 × (0.025 / 12) = $2.50 that month.
 
 ### 1.3 Out of Scope
 
+The following functions are **not** part of this system for Milestone 1. They are excluded to keep the sprint focused on the five user requirements.
+
+| Excluded function | Reason |
+|---|---|
+| Account creation by bank staff or tellers, and other back-office administration | Product Owner decision: in Milestone 1, customers create their own accounts. |
+| Transfers between accounts, to other customers or to other banks | Not one of the five user requirements. |
+| Bill payments, cheques and card payments | Not one of the five user requirements. |
+| Loans, credit cards and credit underwriting | Separate banking products with their own regulation. |
+| Physical cash handling: ATM hardware, cash dispensing and vault management | The system records a withdrawal in the ledger; handing over physical cash is outside the software boundary. |
+| Foreign currency accounts and currency exchange | All amounts are in USD. |
+| Closing accounts and changing interest rates or overdraft limits | Rates and limits are fixed values in this SRS (r = 2.5%, L_max = $500.00, B_min = $100.00). |
+| Native mobile applications | The product is a web application. |
+
 ### 1.4 Definitions, Acronyms, and Abbreviations
+
+| Term | Meaning |
+|---|---|
+| A | The amount of a deposit or withdrawal. Always greater than $0.00. |
+| AES-256 | Advanced Encryption Standard with a 256-bit key, used to protect stored data. |
+| Atomic transaction | A transaction that either completes fully or has no effect at all. |
+| B | The lowest daily balance of a Savings Account during a month, used for interest. |
+| B_min | The minimum balance a Savings Account must keep: $100.00. |
+| BCrypt | A slow, salted password hashing algorithm. This system uses cost factor 12. |
+| CI | Continuous Integration: tests run automatically on every pull request (GitHub Actions). |
+| Current Account | A transactional account for everyday spending, with an overdraft facility. |
+| ERR_INSUFFICIENT_FUNDS | The error the system returns when a withdrawal would break the account's balance rule. |
+| IEEE 830 | The IEEE recommended practice for software requirements specifications that this document follows. |
+| JUnit | The Java unit testing framework used for the automated tests named in the RTM. |
+| L_max | The overdraft limit of a Current Account: $500.00. |
+| Ledger | The immutable, append-only record of every transaction. Entries are never edited or deleted. |
+| MFA | Multi-Factor Authentication: proving identity with two or more factors, here a password and a one-time code. |
+| NFR | Non-Functional Requirement: a quality of the whole system, such as speed, security or availability. |
+| OTP | One-Time Password (one-time verification code): a short code valid for a single login. |
+| r | The annual interest rate of a Savings Account: 2.5%. |
+| Rollback | Undoing every change of a failed transaction, so the data returns to its state before the transaction. |
+| RTM | Requirements Traceability Matrix: the table linking each user requirement to system requirements, use cases and tests. |
+| Savings Account | An interest-bearing account with a minimum balance and no overdraft. |
+| SR | System Requirement: a detailed technical requirement with inputs, outputs, preconditions, postconditions and exceptions. |
+| SRS | Software Requirements Specification: this document. |
+| TLS 1.3 | Transport Layer Security version 1.3, used to encrypt all traffic between browser and server. |
+| UC | Use Case: a goal an actor reaches by interacting with the system, shown in the UML diagram. |
+| UR | User Requirement: a requirement written in natural language from the customer's point of view. |
 
 ## 2. Stakeholders and Reader Perspectives
 
 <!-- Owner: Mina. Issue #8 -->
+
+Different stakeholders read this SRS for different purposes:
+
+| Reader category | Stakeholders | What they need from this document | Main sections |
+|---|---|---|---|
+| Client and evaluator | Course instructor (Dr. Bestoon Hussien) | Confirm that the system meets the educational and business objectives of the milestone. | 1, 7 |
+| End users | Bank customers | Confirm that the services they need are described correctly. | 1, 3 |
+| Product Owner | Mina | Keep scope, priorities and acceptance criteria consistent with the backlog. | 1, 2, 3 |
+| ScrumMaster | Aiman | Plan the sprint, manage change control and maintain traceability. | 7 |
+| System architect and security lead | Rozyar | Design authentication, security controls and the UML model. | 4.1, 5.1, 6 |
+| Software developers | Rozi, Sahand, Ara | Use the system requirements as the blueprint for back end, database and front end. | 4, 6 |
+| Test engineers | Quality assurance and the automated JUnit suite | Derive test cases from requirements and acceptance criteria. | 4, 5, 7 |
+| Security and compliance auditors | Bank auditors (external) | Check encryption, password storage and the immutable audit trail. | 5.1, 5.4 |
 
 ## 3. User Requirements Definition
 
