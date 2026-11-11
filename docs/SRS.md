@@ -149,6 +149,13 @@ Different stakeholders read this SRS for different purposes:
 ### 4.2 Account Management Logic
 
 <!-- Owner: Sahand. Issue #12. SR-2.1, SR-2.2, SR-2.3 -->
+**SR-2.1 [Current Account Overdraft]:** The system shall allow a withdrawal of amount A from a Current Account only if the resulting balance is not lower than -L_max, where L_max = $500.00.
+- **Inputs:** Account ID, transaction amount A (A > $0.00).
+- **Preconditions:** The user is authenticated; the account exists and its type is CURRENT; A > $0.00.
+- **Processing:** The system computes the new balance as (current balance - A). If the new balance is greater than or equal to -$500.00, the withdrawal is accepted. Otherwise it is rejected. A new Current Account is opened with an opening balance of at least $0.00.
+- **Outputs:** On success, the updated balance. On rejection, the error code ERR_INSUFFICIENT_FUNDS.
+- **Postconditions:** On success, the balance equals the previous balance minus A and one ledger entry is appended. On rejection, nothing changes: no balance change and no ledger entry.
+- **Exceptions:** If the new balance would be lower than -$500.00, the system returns ERR_INSUFFICIENT_FUNDS. If A is not greater than $0.00, the request is rejected as an invalid amount. If the account is a Savings Account, SR-2.3 applies instead and no overdraft is allowed.
 
 ### 4.3 Transaction Processing Logic
 
