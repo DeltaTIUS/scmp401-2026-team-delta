@@ -1,0 +1,72 @@
+@startuml use-case-diagram
+' UML use case diagram for the Secure Banking Application (SRS section 6.1).
+' Export: plantuml -tpng docs/uml/use-case-diagram.puml
+
+left to right direction
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam packageStyle rectangle
+skinparam usecase {
+  BackgroundColor #EAF4FD
+  BorderColor #2B6CB0
+}
+skinparam rectangle<<System>> {
+  BackgroundColor #FDEBCB
+  BorderColor #B7561F
+}
+
+title UML Use Case Diagram: Secure Banking Application
+
+actor Customer
+
+rectangle "Secure Banking Application" {
+  usecase "Log In" as UC01
+  usecase "Verify One-Time Code" as OTP
+  usecase "Lock Account" as LOCK
+
+  usecase "Create Account" as UC02
+  usecase "Create Current Account" as CUR
+  usecase "Create Savings Account" as SAV
+
+  usecase "Check Balance" as UC04
+  usecase "Deposit Funds" as UC05
+  usecase "Withdraw Funds" as UC03
+  usecase "Verify Balance" as VB
+  usecase "Display Overdraft Warning" as ODW
+  usecase "Record Ledger Entry" as LEDGER
+}
+
+rectangle "Auth Server" <<System>> as AUTH
+rectangle "Core Banking Database" <<System>> as DB
+
+' Primary actor associations
+Customer -- UC01
+Customer -- UC02
+Customer -- UC04
+Customer -- UC05
+Customer -- UC03
+
+' <<include>>: always happens as part of the base use case
+UC01 ..> OTP : <<include>>
+UC03 ..> VB : <<include>>
+UC03 ..> LEDGER : <<include>>
+UC05 ..> LEDGER : <<include>>
+
+' <<extend>>: only happens under a condition (arrow points to the base use case)
+LOCK ..> UC01 : <<extend>>\n(3 failed attempts in 5 min)
+ODW ..> UC03 : <<extend>>\n(funds insufficient)
+
+' Generalization: both account types are kinds of Create Account
+CUR --|> UC02
+SAV --|> UC02
+
+' Secondary actor associations
+UC01 -- AUTH
+OTP -- AUTH
+LOCK -- AUTH
+UC02 -- DB
+UC04 -- DB
+VB -- DB
+LEDGER -- DB
+
+@enduml
