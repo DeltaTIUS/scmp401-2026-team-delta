@@ -149,7 +149,9 @@ Different stakeholders read this SRS for different purposes:
 
 **Rationale:** This requirement allows customers to add money to their accounts while ensuring that deposits are accurately recorded and account balances remain consistent.
 ### UR-5 Withdrawal
+**UR-5:** The system shall allow customers to withdraw money from their own accounts according to the applicable account rules, allowing Current Accounts to reach a maximum overdraft of $500 and requiring Savings Accounts to retain at least $100. If a withdrawal cannot be completed because of insufficient funds, the system shall clearly inform the customer, and the transaction shall not change the account balance or be partially completed.
 
+**Rationale:** This requirement allows customers to access their money while respecting account limits and preventing invalid or incomplete withdrawals.
 ## 4. Detailed System Requirements Specification
 
 ### 4.1 Authentication and Access Control
