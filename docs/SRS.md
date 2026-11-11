@@ -71,6 +71,7 @@ The following functions are **not** part of this system for Milestone 1. They ar
 | Excluded function | Reason |
 |---|---|
 | Account creation by bank staff or tellers, and other back-office administration | Product Owner decision: in Milestone 1, customers create their own accounts. |
+| Customer registration and onboarding, including identity checks and registering or changing the mobile number | Customers are assumed to be already registered with the bank and to have a verified mobile number, which SR-1.3 uses to send the one-time code. |
 | Transfers between accounts, to other customers or to other banks | Not one of the five user requirements. |
 | Bill payments, cheques and card payments | Not one of the five user requirements. |
 | Loans, credit cards and credit underwriting | Separate banking products with their own regulation. |
