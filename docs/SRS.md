@@ -136,6 +136,9 @@ Different stakeholders read this SRS for different purposes:
 **Rationale:** This requirement protects customers' personal and financial information from unauthorized access while reducing the risk of account misuse.
 
 ### UR-2 Account Creation
+**UR-2:** The system shall allow customers to create their own Current Accounts, which support everyday spending and overdrafts up to $500 below zero, or Savings Accounts, which earn monthly interest and require a minimum balance of $100.
+
+**Rationale:** This requirement gives customers the flexibility to choose an account type that suits their financial needs while supporting everyday banking activities and encouraging saving.
 
 ### UR-3 Balance Inquiry
 
