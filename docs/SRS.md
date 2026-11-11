@@ -169,6 +169,18 @@ Check Balance, Deposit Funds and Withdraw Funds do not include Log In. Being log
 
 <!-- Owner: Rozyar. Issue #10 -->
 
+| | |
+|---|---|
+| **Use Case ID and Name** | UC-01: Log In |
+| **Primary Actor** | Customer |
+| **Secondary Actor** | Auth Server |
+| **Description** | The customer proves their identity with a User ID, a password and a one-time verification code, and gets access to their account services. |
+| **Traces to** | UR-1; SR-1.1, SR-1.2, SR-1.3 |
+| **Preconditions** | The customer is registered. The account is not locked. The connection uses TLS 1.3. |
+| **Main Success Scenario** | 1. Customer opens the login page and enters User ID and password. <br> 2. Auth Server checks the password against the stored BCrypt hash (SR-1.1). <br> 3. System executes Verify One-Time Code (`<<include>>`): Auth Server sends a 6-digit code by SMS (SR-1.3). <br> 4. Customer enters the code. <br> 5. Auth Server confirms the code is correct, unused and not expired. <br> 6. System creates an authenticated session and shows the customer's account services. |
+| **Extensions** | 1a. Account is locked: System shows "Account locked. Try again in 15 minutes" and the use case ends, even if the password is correct. <br> 2a. Wrong User ID or password: System shows "Invalid User ID or password" and adds 1 to the failed-attempt counter; the customer returns to step 1. <br> 2b. Third failure within 5 minutes: System triggers Lock Account (`<<extend>>`): the account is locked for 15 minutes, a security audit log entry is written, and the use case ends (SR-1.2). <br> 3a. Auth Server unavailable or SMS cannot be sent: System shows an error and no session is created. <br> 5a. Wrong code: the customer may retry; after 3 wrong codes the use case restarts at step 1. <br> 5b. Code expired (older than 5 minutes): the use case restarts at step 1. |
+| **Postconditions** | Success: an authenticated session exists, the failed-attempt counter is 0, and the code is marked as used. Failure: no session exists and no account data has been shown. |
+
 ### 6.3 UC-02: Create Account
 
 <!-- Owner: Rozyar. Issue #10 -->
