@@ -237,6 +237,18 @@ All three transactions in this section need an authenticated session (UC-01). A 
 
 <!-- Owner: Rozi. Issue #11 -->
 
+| | |
+|---|---|
+| **Use Case ID and Name** | UC-03: Withdraw Funds |
+| **Primary Actor** | Customer |
+| **Secondary Actor** | Core Banking Database |
+| **Description** | The customer withdraws amount A from one of their own Current or Savings Accounts. The withdrawal is atomic: either it is completed and recorded in the ledger, or it has no effect at all. |
+| **Traces to** | UR-5; SR-3.1, SR-2.1, SR-2.3 |
+| **Preconditions** | The customer is logged in (UC-01) and the session is active. The account belongs to the customer and its status is ACTIVE. |
+| **Main Success Scenario** | 1. Customer selects Withdraw Funds, chooses one of their accounts and enters the amount A. <br> 2. System checks that the session is still valid and that A > $0.00. <br> 3. System executes Verify Balance (`<<include>>`): it reads the balance and account type from the Core Banking Database and applies the rule. Current: Balance + L_max ≥ A (SR-2.1). Savings: Balance − A ≥ B_min (SR-2.3). <br> 4. System deducts A: Balance_new = Balance_old − A. <br> 5. System executes Record Ledger Entry (`<<include>>`): an immutable entry with timestamp, User ID, Account ID, amount and new balance is appended. <br> 6. System commits the transaction and shows the amount withdrawn and the new balance. |
+| **Extensions** | 2a. Session has expired: System redirects to Log In and nothing is withdrawn. <br> 2b. A ≤ $0.00: System shows ERR_INVALID_AMOUNT and returns to step 1; nothing changes. <br> 3a. Funds insufficient: System triggers Display Overdraft Warning (`<<extend>>`). This one extension covers both account types: a Current Account withdrawal that would go beyond the overdraft limit (Balance + L_max < A, so the new balance would fall below −$500.00), and a Savings Account withdrawal that would leave the balance below B_min = $100.00 (Balance − A < B_min). The warning names the rule that failed. The transaction is aborted and rolled back, the system returns ERR_INSUFFICIENT_FUNDS, and nothing changes. <br> 4a. Core Banking Database or ledger failure during steps 4 to 6: the whole transaction is rolled back, System shows "Transaction could not be completed, please try again", and nothing changes. |
+| **Postconditions** | Success: Balance_new = Balance_old − A, and exactly one ledger entry is recorded. Failure: the balance and the ledger are exactly as before. |
+
 ### 6.5 UC-04: Check Balance
 
 <!-- Owner: Rozi. Issue #11 -->
