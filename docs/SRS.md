@@ -269,6 +269,18 @@ All three transactions in this section need an authenticated session (UC-01). A 
 
 <!-- Owner: Rozi. Issue #11 -->
 
+| | |
+|---|---|
+| **Use Case ID and Name** | UC-05: Deposit Funds |
+| **Primary Actor** | Customer |
+| **Secondary Actor** | Core Banking Database |
+| **Description** | The customer deposits amount A into one of their own ACTIVE accounts. The deposit is atomic: either it is completed and recorded in the ledger, or it has no effect at all. |
+| **Traces to** | UR-4; SR-3.2 |
+| **Preconditions** | The customer is logged in (UC-01) and the session is active. |
+| **Main Success Scenario** | 1. Customer selects Deposit Funds, chooses one of their accounts and enters the amount A. <br> 2. System checks that the session is still valid and that A > $0.00. <br> 3. System checks that the account belongs to the customer and its status is ACTIVE. <br> 4. System adds A: Balance_new = Balance_old + A. <br> 5. System executes Record Ledger Entry (`<<include>>`): an immutable entry with timestamp, User ID, Account ID, amount and new balance is appended. <br> 6. System commits the transaction and shows the amount deposited and the new balance. |
+| **Extensions** | 2a. Session has expired: System redirects to Log In and nothing is deposited. <br> 2b. A ≤ $0.00: System shows ERR_INVALID_AMOUNT and returns to step 1; nothing changes. <br> 3a. Account is not the customer's or not ACTIVE: System shows "Account not available"; nothing changes. <br> 4a. Core Banking Database or ledger failure during steps 4 to 6: the whole transaction is rolled back, System shows "Transaction could not be completed, please try again", and nothing changes. |
+| **Postconditions** | Success: Balance_new = Balance_old + A, and exactly one ledger entry is recorded. Failure: the balance and the ledger are exactly as before. |
+
 ## 7. Requirements Traceability and Change Control
 
 <!-- Owner: Aiman. Issue #13 -->
