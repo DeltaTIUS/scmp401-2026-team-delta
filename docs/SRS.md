@@ -141,7 +141,9 @@ Different stakeholders read this SRS for different purposes:
 **Rationale:** This requirement gives customers the flexibility to choose an account type that suits their financial needs while supporting everyday banking activities and encouraging saving.
 
 ### UR-3 Balance Inquiry
+**UR-3:** The system shall allow customers to view the type and current balance of each of their own accounts, including the available funds in Current Accounts with the applicable overdraft limit. Customers shall only be able to view accounts belonging to themselves.
 
+**Rationale:** This requirement helps customers monitor their finances while ensuring that their personal account information remains private.
 ### UR-4 Deposit
 
 ### UR-5 Withdrawal
