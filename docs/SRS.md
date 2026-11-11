@@ -135,6 +135,36 @@ Authentication is handled by the Auth Server, which stores the credential record
 
 <!-- Owner: Rozyar. Issue #10 -->
 
+![UML use case diagram of the Secure Banking Application](uml/use-case-diagram.png)
+
+Source: [`docs/uml/use-case-diagram.puml`](uml/use-case-diagram.puml) (PlantUML).
+
+**System boundary.** The rectangle labelled "Secure Banking Application" contains every use case that Team Delta builds. The actors are outside it.
+
+**Actors.**
+
+| Actor | Type | Position | Associated use cases |
+|---|---|---|---|
+| Customer | Primary (starts the use cases) | Left | Log In, Create Account, Check Balance, Deposit Funds, Withdraw Funds |
+| Auth Server | Secondary, `<<System>>` | Right | Log In, Verify One-Time Code, Lock Account |
+| Core Banking Database | Secondary, `<<System>>` | Right | Create Account, Check Balance, Verify Balance, Record Ledger Entry |
+
+**Relationships.**
+
+| Relationship | Type | Why |
+|---|---|---|
+| Log In → Verify One-Time Code | `<<include>>` | Every login needs the second factor (SR-1.3). It always happens. |
+| Withdraw Funds → Verify Balance | `<<include>>` | Every withdrawal checks the account rules first (SR-3.1, SR-2.1, SR-2.3). |
+| Withdraw Funds → Record Ledger Entry | `<<include>>` | Every successful withdrawal is written to the immutable ledger. |
+| Deposit Funds → Record Ledger Entry | `<<include>>` | Every successful deposit is written to the immutable ledger. |
+| Lock Account → Log In | `<<extend>>` | Happens only when 3 passwords fail within 5 minutes (SR-1.2). |
+| Display Overdraft Warning → Withdraw Funds | `<<extend>>` | Happens only when the funds are insufficient; the withdrawal is then aborted with ERR_INSUFFICIENT_FUNDS. |
+| Create Current Account, Create Savings Account → Create Account | Generalization | Both are kinds of Create Account. They share the same steps but get different rules (overdraft for Current, interest and minimum balance for Savings). |
+
+An `<<include>>` arrow points from the base use case to the part it always uses. An `<<extend>>` arrow points from the optional behaviour back to the base use case it extends.
+
+Check Balance, Deposit Funds and Withdraw Funds do not include Log In. Being logged in is a **precondition** of those use cases: the customer logs in once per session, not once per transaction.
+
 ### 6.2 UC-01: Log In
 
 <!-- Owner: Rozyar. Issue #10 -->
