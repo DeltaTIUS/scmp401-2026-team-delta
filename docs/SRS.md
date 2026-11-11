@@ -149,6 +149,7 @@ Different stakeholders read this SRS for different purposes:
 ### 4.2 Account Management Logic
 
 <!-- Owner: Sahand. Issue #12. SR-2.1, SR-2.2, SR-2.3 -->
+
 **SR-2.1 [Current Account Overdraft]:** The system shall allow a withdrawal of amount A from a Current Account only if the resulting balance is not lower than -L_max, where L_max = $500.00.
 - **Inputs:** Account ID, transaction amount A (A > $0.00).
 - **Preconditions:** The user is authenticated; the account exists and its type is CURRENT; A > $0.00.
@@ -157,6 +158,15 @@ Different stakeholders read this SRS for different purposes:
 - **Postconditions:** On success, the balance equals the previous balance minus A and one ledger entry is appended. On rejection, nothing changes: no balance change and no ledger entry.
 - **Exceptions:** If the new balance would be lower than -$500.00, the system returns ERR_INSUFFICIENT_FUNDS. If A is not greater than $0.00, the request is rejected as an invalid amount. If the account is a Savings Account, SR-2.3 applies instead and no overdraft is allowed.
 
+
+**SR-2.2 [Savings Account Interest]:** The system shall add interest I = B x (r / 12) to every Savings Account on the last calendar day of each month, where B is the lowest daily balance of that account in that month and r = 2.5% per year.
+- **Inputs:** Account ID, B (the lowest daily balance of the month), r = 2.5% per year.
+- **Preconditions:** The account type is SAVINGS; it is the last calendar day of the month; B > $0.00.
+- **Processing:** The system finds B from the daily balances of the month, calculates I = B x (r / 12), rounds I to the nearest cent, and adds I to the account balance. Example: B = $1,200.00 gives I = 1,200.00 x (0.025 / 12) = $2.50.
+- **Outputs:** The interest amount I and the new balance.
+- **Postconditions:** The balance is increased by I, one INTEREST ledger entry of amount I is appended, and the matching audit log entry is created.
+- **Exceptions:** If B is $0.00 or less, no interest is added. If the interest posting fails, the balance is left unchanged and the failure is logged.
+  
 ### 4.3 Transaction Processing Logic
 
 <!-- Owner: Rozi. Issue #11. SR-3.1, SR-3.2, SR-3.3 -->
