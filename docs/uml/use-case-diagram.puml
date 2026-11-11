@@ -21,18 +21,17 @@ actor Customer
 
 rectangle "Secure Banking Application" {
   usecase "Log In" as UC01
-  usecase "Verify One-Time Code" as OTP
-  usecase "Lock Account" as LOCK
-
-  usecase "Create Account" as UC02
-  usecase "Create Current Account" as CUR
-  usecase "Create Savings Account" as SAV
-
-  usecase "Check Balance" as UC04
   usecase "Deposit Funds" as UC05
   usecase "Withdraw Funds" as UC03
-  usecase "Verify Balance" as VB
+  usecase "Check Balance" as UC04
+  usecase "Create Account" as UC02
+
+  usecase "Lock Account" as LOCK
+  usecase "Verify One-Time Code" as OTP
+  usecase "Create Current Account" as CUR
+  usecase "Create Savings Account" as SAV
   usecase "Display Overdraft Warning" as ODW
+  usecase "Verify Balance" as VB
   usecase "Record Ledger Entry" as LEDGER
 }
 
@@ -41,10 +40,10 @@ rectangle "Core Banking Database" <<System>> as DB
 
 ' Primary actor associations
 Customer -- UC01
-Customer -- UC02
-Customer -- UC04
 Customer -- UC05
 Customer -- UC03
+Customer -- UC04
+Customer -- UC02
 
 ' <<include>>: always happens as part of the base use case
 UC01 ..> OTP : <<include>>
@@ -52,13 +51,14 @@ UC03 ..> VB : <<include>>
 UC03 ..> LEDGER : <<include>>
 UC05 ..> LEDGER : <<include>>
 
-' <<extend>>: only happens under a condition (arrow points to the base use case)
-LOCK ..> UC01 : <<extend>>\n(3 failed attempts in 5 min)
-ODW ..> UC03 : <<extend>>\n(funds insufficient)
+' <<extend>>: only happens under a condition (arrow points to the base use case).
+' Written base-first so the extension is drawn to the right of its base.
+UC01 <.. LOCK : <<extend>>\n(3 failed attempts in 5 min)
+UC03 <.. ODW : <<extend>>\n(funds insufficient)
 
 ' Generalization: both account types are kinds of Create Account
-CUR --|> UC02
-SAV --|> UC02
+UC02 <|-- CUR
+UC02 <|-- SAV
 
 ' Secondary actor associations
 UC01 -- AUTH
