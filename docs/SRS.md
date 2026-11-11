@@ -185,6 +185,18 @@ Check Balance, Deposit Funds and Withdraw Funds do not include Log In. Being log
 
 <!-- Owner: Rozyar. Issue #10 -->
 
+| | |
+|---|---|
+| **Use Case ID and Name** | UC-02: Create Account |
+| **Primary Actor** | Customer |
+| **Secondary Actor** | Core Banking Database |
+| **Description** | A logged-in customer opens a new Current Account or Savings Account. The two specialised use cases, Create Current Account and Create Savings Account, follow these steps and differ only in the rules attached to the new account (generalization). |
+| **Traces to** | UR-2; SR-2.1, SR-2.2, SR-2.3 |
+| **Preconditions** | The customer is authenticated (UC-01) and the session is active. |
+| **Main Success Scenario** | 1. Customer selects Create Account. <br> 2. Customer chooses the account type: Current or Savings. <br> 3. System shows the rules of the chosen type: Current, overdraft down to L_max = $500.00 (SR-2.1); Savings, interest I = B × (r / 12) with r = 2.5% (SR-2.2) and minimum balance B_min = $100.00 (SR-2.3). <br> 4. Customer confirms. <br> 5. System creates the account with a unique Account ID, the chosen type, status ACTIVE and the opening balance defined in Section 4.2, and stores it in the Core Banking Database. <br> 6. System shows the new Account ID and type. |
+| **Extensions** | 2a. Customer cancels: no account is created. <br> 4a. Session has expired: System redirects to Log In and no account is created. <br> 5a. Core Banking Database unavailable: System shows "Account could not be created, please try again" and nothing is stored. |
+| **Postconditions** | Success: a new ACTIVE account of the chosen type is linked to the customer, and the rules of its type apply to every later transaction. Failure: no account record exists. |
+
 ### 6.4 UC-03: Withdraw Funds
 
 <!-- Owner: Rozi. Issue #11 -->
