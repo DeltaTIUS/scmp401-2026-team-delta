@@ -133,15 +133,27 @@ Different stakeholders read this SRS for different purposes:
 <!-- Owner: Ara. Issue #9 -->
 
 ### UR-1 Security and Authentication
+**UR-1:** The system shall allow customers to securely access their accounts by signing in with their User ID, password, and a one-time verification code. The system shall temporarily lock a customer's account for 15 minutes after three incorrect password attempts within five minutes, and end the session after 15 minutes of inactivity.
+
+**Rationale:** This requirement protects customers' personal and financial information from unauthorized access while reducing the risk of account misuse.
 
 ### UR-2 Account Creation
+**UR-2:** The system shall allow customers to create their own Current Accounts, which support everyday spending and overdrafts up to $500 below zero, or Savings Accounts, which earn monthly interest and require a minimum balance of $100.
+
+**Rationale:** This requirement gives customers the flexibility to choose an account type that suits their financial needs while supporting everyday banking activities and encouraging saving.
 
 ### UR-3 Balance Inquiry
+**UR-3:** The system shall allow customers to view the type and current balance of each of their own accounts, including the available funds in Current Accounts with the applicable overdraft limit. Customers shall only be able to view accounts belonging to themselves.
 
+**Rationale:** This requirement helps customers monitor their finances while ensuring that their personal account information remains private.
 ### UR-4 Deposit
+**UR-4:** The system shall allow customers to deposit an amount greater than $0 into their own active accounts, increasing the account balance and recording the deposit. Each deposit shall either be completed in full or not take effect.
 
+**Rationale:** This requirement allows customers to add money to their accounts while ensuring that deposits are accurately recorded and account balances remain consistent.
 ### UR-5 Withdrawal
+**UR-5:** The system shall allow customers to withdraw money from their own accounts according to the applicable account rules, allowing Current Accounts to reach a maximum overdraft of $500 and requiring Savings Accounts to retain at least $100. If a withdrawal cannot be completed because of insufficient funds, the system shall clearly inform the customer, and the transaction shall not change the account balance or be partially completed.
 
+**Rationale:** This requirement allows customers to access their money while respecting account limits and preventing invalid or incomplete withdrawals.
 ## 4. Detailed System Requirements Specification
 
 ### 4.1 Authentication and Access Control
