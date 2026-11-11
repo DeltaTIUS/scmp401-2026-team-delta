@@ -168,6 +168,11 @@ Different stakeholders read this SRS for different purposes:
 
 <!-- Owner: Aiman. Issue #13 -->
 
+| NFR Category | Metric Property | Target Quantitative Requirement | Validation Method |
+|---|---|---|---|
+| Organizational | Automated testing | 100% of pull requests shall pass the automated JUnit suite before merge. | GitHub Actions CI pipeline |
+| Organizational | Peer review | 100% of changes to `main` and `develop` shall be merged through a pull request with at least one approval from the ScrumMaster or System Architect. | GitHub branch protection rules and pull request history |
+
 ### 5.4 External: Legal and Audit Trail
 
 <!-- Owner: Sahand. Issue #12 -->
@@ -204,4 +209,24 @@ Different stakeholders read this SRS for different purposes:
 
 ### 7.1 Requirements Traceability Matrix
 
+Each user requirement traces through its system requirements and use case to an automated JUnit test class in `tests/bank/`.
+
+| User Requirement | System Requirement | UML Use Case | Automated JUnit Test |
+|---|---|---|---|
+| UR-1 [Security] | SR-1.1, SR-1.2, SR-1.3 | UC-01: Log In | `AuthenticationTest.java` |
+| UR-2 [Account Creation] | SR-2.1, SR-2.2, SR-2.3 | UC-02: Create Account | `AccountCreationTest.java` |
+| UR-3 [Balance Inquiry] | SR-3.3 | UC-04: Check Balance | `BalanceInquiryTest.java` |
+| UR-4 [Deposit] | SR-3.2 | UC-05: Deposit Funds | `DepositTest.java` |
+| UR-5 [Withdrawal] | SR-3.1, SR-2.1, SR-2.3 | UC-03: Withdraw Funds | `WithdrawalAtomicTest.java` |
+
+Every system requirement appears in at least one row. SR-2.1 and SR-2.3 appear twice because the account rules set at creation also govern withdrawals.
+
+The test cases are derived from the acceptance criteria of the user stories. They remain disabled, and are reported as skipped by the CI pipeline, until the features are implemented in a later milestone.
+
 ### 7.2 Change Control
+
+1. A change is proposed as a GitHub issue stating the affected requirement IDs and the reason.
+2. The Product Owner accepts or rejects it, and sets its priority in the backlog.
+3. The change is made on a `feature/*` branch and merged through a reviewed pull request.
+4. The same pull request updates every affected row of the RTM and the affected test classes.
+5. The revision history in the preface records the new version.
