@@ -145,7 +145,9 @@ Different stakeholders read this SRS for different purposes:
 
 **Rationale:** This requirement helps customers monitor their finances while ensuring that their personal account information remains private.
 ### UR-4 Deposit
+**UR-4:** The system shall allow customers to deposit an amount greater than $0 into their own active accounts, increasing the account balance and recording the deposit. Each deposit shall either be completed in full or not take effect.
 
+**Rationale:** This requirement allows customers to add money to their accounts while ensuring that deposits are accurately recorded and account balances remain consistent.
 ### UR-5 Withdrawal
 
 ## 4. Detailed System Requirements Specification
