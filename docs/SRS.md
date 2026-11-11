@@ -76,7 +76,18 @@ Authentication is handled by the Auth Server, which stores the credential record
 | Outputs | The message "Account locked. Try again in 15 minutes". |
 | Preconditions | The User ID exists and the account is not already locked. |
 | Postconditions | Account status = LOCKED with an unlock time; a security audit log entry is appended with timestamp, User ID and event type ACCOUNT_LOCKED (audit log rules in Section 5.4). After 15 minutes the account unlocks automatically and the counter resets to 0. |
-| Exceptions | Login attempt while locked: rejected with the same lock message, even if the password is correct, and the lock time is not extended. A successful login before the 3rd failure resets the counter to 0. Failures more than 5 minutes apart do not trigger the lock. |
+| Exceptions | Login attempt while locked: rejected with the same lock message, even if the password is correct, and the lock time is not extended. A successful login before the 3rd failure resets the counter to 0. Failures older than 5 minutes no longer count towards the lock. |
+
+**SR-1.3 [One-Time Verification Code]:** After a correct password (SR-1.1), the system shall require a one-time verification code before any account service is shown. The code shall be 6 digits, valid for 5 minutes, and usable only once.
+
+| Field | Specification |
+|---|---|
+| Inputs | The pending login from SR-1.1; the 6-digit code entered by the customer. |
+| Processing | The Auth Server generates a random 6-digit code, sends it to the customer's registered mobile number by SMS, and stores only its hash with an expiry time of 5 minutes. The entered code is compared with the stored hash. |
+| Outputs | Success: an authenticated session token is issued and the customer's account services are shown. Failure: the message "Invalid or expired code". |
+| Preconditions | SR-1.1 succeeded for this User ID less than 5 minutes ago; the account is not locked. |
+| Postconditions | Success: the code is marked as used and cannot be used again; an authenticated session exists for the customer. |
+| Exceptions | Wrong code: the customer may retry; after 3 wrong codes the code is cancelled and the customer must restart from SR-1.1. Expired code: rejected; the customer must restart from SR-1.1. SMS cannot be sent: login stops with "Verification code could not be sent" and no session is created. |
 
 ### 4.2 Account Management Logic
 
