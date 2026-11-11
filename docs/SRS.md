@@ -131,6 +131,9 @@ Different stakeholders read this SRS for different purposes:
 <!-- Owner: Ara. Issue #9 -->
 
 ### UR-1 Security and Authentication
+**UR-1:** The system shall allow customers to securely access their accounts by signing in with their User ID, password, and a one-time verification code. The system shall temporarily lock a customer's account for 15 minutes after three incorrect password attempts within five minutes, and end the session after 15 minutes of inactivity.
+
+**Rationale:** This requirement protects customers' personal and financial information from unauthorized access while reducing the risk of account misuse.
 
 ### UR-2 Account Creation
 
