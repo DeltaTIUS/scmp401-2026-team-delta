@@ -33,4 +33,10 @@ class BalanceInquiryTest {
     void inquiryDoesNotChangeData() {
         fail(PENDING);
     }
+
+    @Test
+    @Disabled(PENDING)
+    void signedOutCustomerCannotViewBalance() {
+        fail(PENDING);
+    }
 }
