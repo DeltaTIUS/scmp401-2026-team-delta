@@ -166,6 +166,15 @@ Different stakeholders read this SRS for different purposes:
 - **Outputs:** The interest amount I and the new balance.
 - **Postconditions:** The balance is increased by I, one INTEREST ledger entry of amount I is appended, and the matching audit log entry is created.
 - **Exceptions:** If B is $0.00 or less, no interest is added. If the interest posting fails, the balance is left unchanged and the failure is logged.
+
+
+  **SR-2.3 [Savings Minimum Balance]:** The system shall keep the balance of every Savings Account at or above B_min = $100.00, never allow an overdraft on a Savings Account, and open a new Savings Account only with an opening deposit of at least B_min.
+- **Inputs:** For a withdrawal: account ID and amount A (A > $0.00). For account opening: customer ID and opening deposit.
+- **Preconditions:** The user is authenticated; A > $0.00; the account type is SAVINGS (for a withdrawal) or a new SAVINGS account is requested (for opening).
+- **Processing:** For a withdrawal, the system computes (current balance - A). If the result is greater than or equal to $100.00, the withdrawal is accepted. Otherwise it is rejected. For opening, the system accepts the account only if the opening deposit is at least $100.00.
+- **Outputs:** On success, the updated balance or the new account. On rejection of a withdrawal, the error code ERR_INSUFFICIENT_FUNDS.
+- **Postconditions:** On success, the balance is at least $100.00 and one ledger entry is appended. On rejection, nothing changes: no balance change, no ledger entry, no account created.
+- **Exceptions:** If a withdrawal would leave the balance below $100.00, the system returns ERR_INSUFFICIENT_FUNDS. If the opening deposit is below $100.00, the opening request is rejected and no account is created. If A is not greater than $0.00, the request is rejected as an invalid amount.
   
 ### 4.3 Transaction Processing Logic
 
