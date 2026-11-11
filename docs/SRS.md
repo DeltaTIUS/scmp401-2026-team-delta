@@ -67,6 +67,17 @@ Authentication is handled by the Auth Server, which stores the credential record
 | Postconditions | Success: a pending login is created that grants no account service until SR-1.3 completes, and the failed-attempt counter is reset to 0. Failure: the failed-attempt counter for the User ID increases by 1. |
 | Exceptions | Unknown User ID or wrong password: the same generic message is returned in both cases, so the response does not reveal which User IDs exist. Auth Server unavailable: login is refused with "Service temporarily unavailable" and no session is created. |
 
+**SR-1.2 [Account Lockout]:** If three (3) consecutive incorrect password attempts are detected for the same User ID within 5 minutes, the system shall lock the account for 15 minutes and write a security audit log entry.
+
+| Field | Specification |
+|---|---|
+| Inputs | Failed password attempts from SR-1.1, each with the User ID and the time of the attempt. |
+| Processing | The Auth Server counts consecutive failed attempts per User ID. When the 3rd failure occurs within 5 minutes of the 1st, the account is locked until the time of the 3rd failure + 15 minutes. |
+| Outputs | The message "Account locked. Try again in 15 minutes". |
+| Preconditions | The User ID exists and the account is not already locked. |
+| Postconditions | Account status = LOCKED with an unlock time; a security audit log entry is appended with timestamp, User ID and event type ACCOUNT_LOCKED (audit log rules in Section 5.4). After 15 minutes the account unlocks automatically and the counter resets to 0. |
+| Exceptions | Login attempt while locked: rejected with the same lock message, even if the password is correct, and the lock time is not extended. A successful login before the 3rd failure resets the counter to 0. Failures more than 5 minutes apart do not trigger the lock. |
+
 ### 4.2 Account Management Logic
 
 <!-- Owner: Sahand. Issue #12. SR-2.1, SR-2.2, SR-2.3 -->
