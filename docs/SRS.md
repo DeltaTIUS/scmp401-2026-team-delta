@@ -54,6 +54,19 @@
 
 <!-- Owner: Rozyar. Issue #10. SR-1.1, SR-1.2, SR-1.3 -->
 
+Authentication is handled by the Auth Server, which stores the credential records and verifies passwords and one-time verification codes. A customer reaches account services only after passing SR-1.1 and then SR-1.3, and only while SR-1.2 has not locked the account.
+
+**SR-1.1 [User ID and Password Verification]:** Upon user login, the system shall prompt for User ID and Password. Passwords shall be hashed using BCrypt with cost factor 12; only the hash shall be stored and compared, and the plain-text password shall never be stored or logged.
+
+| Field | Specification |
+|---|---|
+| Inputs | User ID and Password, sent over TLS 1.3. |
+| Processing | The Auth Server loads the stored BCrypt hash for the User ID and checks the entered password against it with BCrypt (cost factor 12). |
+| Outputs | Success: the customer is passed to the one-time code step (SR-1.3). Failure: the message "Invalid User ID or password". |
+| Preconditions | The customer is registered; the account is not locked (SR-1.2); the connection uses TLS 1.3. |
+| Postconditions | Success: a pending login is created that grants no account service until SR-1.3 completes, and the failed-attempt counter is reset to 0. Failure: the failed-attempt counter for the User ID increases by 1. |
+| Exceptions | Unknown User ID or wrong password: the same generic message is returned in both cases, so the response does not reveal which User IDs exist. Auth Server unavailable: login is refused with "Service temporarily unavailable" and no session is created. |
+
 ### 4.2 Account Management Logic
 
 <!-- Owner: Sahand. Issue #12. SR-2.1, SR-2.2, SR-2.3 -->
