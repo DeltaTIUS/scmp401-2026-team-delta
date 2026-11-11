@@ -146,6 +146,41 @@ Different stakeholders read this SRS for different purposes:
 
 <!-- Owner: Rozyar. Issue #10. SR-1.1, SR-1.2, SR-1.3 -->
 
+Authentication is handled by the Auth Server, which stores the credential records and verifies passwords and one-time verification codes. A customer reaches account services only after passing SR-1.1 and then SR-1.3, and only while SR-1.2 has not locked the account.
+
+**SR-1.1 [User ID and Password Verification]:** Upon user login, the system shall prompt for User ID and Password. Passwords shall be hashed using BCrypt with cost factor 12; only the hash shall be stored and compared, and the plain-text password shall never be stored or logged.
+
+| Field | Specification |
+|---|---|
+| Inputs | User ID and Password, sent over TLS 1.3. |
+| Processing | The Auth Server loads the stored BCrypt hash for the User ID and checks the entered password against it with BCrypt (cost factor 12). |
+| Outputs | Success: the customer is passed to the one-time code step (SR-1.3). Failure: the message "Invalid User ID or password". |
+| Preconditions | The customer is registered; the account is not locked (SR-1.2); the connection uses TLS 1.3. |
+| Postconditions | Success: a pending login is created that grants no account service until SR-1.3 completes, and the failed-attempt counter is reset to 0. Failure: the failed-attempt counter for the User ID increases by 1. |
+| Exceptions | Unknown User ID or wrong password: the same generic message is returned in both cases, so the response does not reveal which User IDs exist. Auth Server unavailable: login is refused with "Service temporarily unavailable" and no session is created. |
+
+**SR-1.2 [Account Lockout]:** If three (3) consecutive incorrect password attempts are detected for the same User ID within 5 minutes, the system shall lock the account for 15 minutes and write a security audit log entry.
+
+| Field | Specification |
+|---|---|
+| Inputs | Failed password attempts from SR-1.1, each with the User ID and the time of the attempt. |
+| Processing | The Auth Server counts consecutive failed attempts per User ID. When the 3rd failure occurs within 5 minutes of the 1st, the account is locked until the time of the 3rd failure + 15 minutes. |
+| Outputs | The message "Account locked. Try again in 15 minutes". |
+| Preconditions | The User ID exists and the account is not already locked. |
+| Postconditions | Account status = LOCKED with an unlock time; a security audit log entry is appended with timestamp, User ID and event type ACCOUNT_LOCKED (audit log rules in Section 5.4). After 15 minutes the account unlocks automatically and the counter resets to 0. |
+| Exceptions | Login attempt while locked: rejected with the same lock message, even if the password is correct, and the lock time is not extended. A successful login before the 3rd failure resets the counter to 0. Failures older than 5 minutes no longer count towards the lock. |
+
+**SR-1.3 [One-Time Verification Code]:** After a correct password (SR-1.1), the system shall require a one-time verification code before any account service is shown. The code shall be 6 digits, valid for 5 minutes, and usable only once.
+
+| Field | Specification |
+|---|---|
+| Inputs | The pending login from SR-1.1; the 6-digit code entered by the customer. |
+| Processing | The Auth Server generates a random 6-digit code, sends it to the customer's registered mobile number by SMS, and stores only its hash with an expiry time of 5 minutes. The entered code is compared with the stored hash. |
+| Outputs | Success: an authenticated session token is issued and the customer's account services are shown. Failure: the message "Invalid or expired code". |
+| Preconditions | SR-1.1 succeeded for this User ID less than 5 minutes ago; the account is not locked. |
+| Postconditions | Success: the code is marked as used and cannot be used again; an authenticated session exists for the customer. |
+| Exceptions | Wrong code: the customer may retry; after 3 wrong codes the code is cancelled and the customer must restart from SR-1.1. Expired code: rejected; the customer must restart from SR-1.1. SMS cannot be sent: login stops with "Verification code could not be sent" and no session is created. |
+
 ### 4.2 Account Management Logic
 
 <!-- Owner: Sahand. Issue #12. SR-2.1, SR-2.2, SR-2.3 -->
@@ -159,6 +194,15 @@ Different stakeholders read this SRS for different purposes:
 ### 5.1 Product: Security
 
 <!-- Owner: Rozyar. Issue #10 -->
+
+| NFR Category | Metric Property | Target Quantitative Requirement | Validation Method |
+|---|---|---|---|
+| Product (Security) | Data in transit | 100% of network traffic between client and server shall use TLS 1.3; connections offering TLS 1.2 or lower shall be refused. | Wireshark network audit of a full session, plus a forced TLS 1.2 connection attempt that must fail |
+| Product (Security) | Data at rest | Customer and account data stored in the Core Banking Database shall be encrypted with AES-256. | Database configuration review and inspection of the raw storage files |
+| Product (Security) | Password storage | 100% of stored passwords shall be BCrypt hashes with cost factor 12; zero plain-text passwords shall exist in storage or logs. | JUnit test (`AuthenticationTest`) checking the `$2b$12$` hash prefix, and a search of the database and logs for test passwords |
+| Product (Security) | Brute-force protection | An account shall lock after 3 failed password attempts within 5 minutes and stay locked for 15 minutes (SR-1.2). | JUnit test (`AuthenticationTest`) using a controllable clock |
+| Product (Security) | Multi-factor authentication | 100% of logins shall pass the one-time verification code (SR-1.3) before any account data is shown. | JUnit test (`AuthenticationTest`), and a manual check that no account page loads with only a password |
+| Product (Security) | Session timeout | An authenticated session shall expire after 15 minutes of inactivity; any later request is sent back to Log In. | Manual test: leave a session idle for 15 minutes, then try to view a balance |
 
 ### 5.2 Product: Speed and Availability
 
@@ -183,13 +227,67 @@ Different stakeholders read this SRS for different purposes:
 
 <!-- Owner: Rozyar. Issue #10 -->
 
+![UML use case diagram of the Secure Banking Application](uml/use-case-diagram.png)
+
+Source: [`docs/uml/use-case-diagram.puml`](uml/use-case-diagram.puml) (PlantUML).
+
+**System boundary.** The rectangle labelled "Secure Banking Application" contains every use case that Team Delta builds. The actors are outside it.
+
+**Actors.**
+
+| Actor | Type | Position | Associated use cases |
+|---|---|---|---|
+| Customer | Primary (starts the use cases) | Left | Log In, Create Account, Check Balance, Deposit Funds, Withdraw Funds |
+| Auth Server | Secondary, `<<System>>` | Right | Log In, Verify One-Time Code, Lock Account |
+| Core Banking Database | Secondary, `<<System>>` | Right | Create Account, Check Balance, Verify Balance, Record Ledger Entry |
+
+**Relationships.**
+
+| Relationship | Type | Why |
+|---|---|---|
+| Log In → Verify One-Time Code | `<<include>>` | Every login needs the second factor (SR-1.3). It always happens. |
+| Withdraw Funds → Verify Balance | `<<include>>` | Every withdrawal checks the account rules first (SR-3.1, SR-2.1, SR-2.3). |
+| Withdraw Funds → Record Ledger Entry | `<<include>>` | Every successful withdrawal is written to the immutable ledger. |
+| Deposit Funds → Record Ledger Entry | `<<include>>` | Every successful deposit is written to the immutable ledger. |
+| Lock Account → Log In | `<<extend>>` | Happens only when 3 passwords fail within 5 minutes (SR-1.2). |
+| Display Overdraft Warning → Withdraw Funds | `<<extend>>` | Happens only when the funds are insufficient; the withdrawal is then aborted with ERR_INSUFFICIENT_FUNDS. |
+| Create Current Account, Create Savings Account → Create Account | Generalization | Both are kinds of Create Account. They share the same steps but get different rules (overdraft for Current, interest and minimum balance for Savings). |
+
+An `<<include>>` arrow points from the base use case to the part it always uses. An `<<extend>>` arrow points from the optional behaviour back to the base use case it extends.
+
+Check Balance, Deposit Funds and Withdraw Funds do not include Log In. Being logged in is a **precondition** of those use cases: the customer logs in once per session, not once per transaction.
+
 ### 6.2 UC-01: Log In
 
 <!-- Owner: Rozyar. Issue #10 -->
 
+| | |
+|---|---|
+| **Use Case ID and Name** | UC-01: Log In |
+| **Primary Actor** | Customer |
+| **Secondary Actor** | Auth Server |
+| **Description** | The customer proves their identity with a User ID, a password and a one-time verification code, and gets access to their account services. |
+| **Traces to** | UR-1; SR-1.1, SR-1.2, SR-1.3 |
+| **Preconditions** | The customer is registered. The account is not locked. The connection uses TLS 1.3. |
+| **Main Success Scenario** | 1. Customer opens the login page and enters User ID and password. <br> 2. Auth Server checks the password against the stored BCrypt hash (SR-1.1). <br> 3. System executes Verify One-Time Code (`<<include>>`): Auth Server sends a 6-digit code by SMS (SR-1.3). <br> 4. Customer enters the code. <br> 5. Auth Server confirms the code is correct, unused and not expired. <br> 6. System creates an authenticated session and shows the customer's account services. |
+| **Extensions** | 1a. Account is locked: System shows "Account locked. Try again in 15 minutes" and the use case ends, even if the password is correct. <br> 2a. Wrong User ID or password: System shows "Invalid User ID or password" and adds 1 to the failed-attempt counter; the customer returns to step 1. <br> 2b. Third failure within 5 minutes: System triggers Lock Account (`<<extend>>`): the account is locked for 15 minutes, a security audit log entry is written, and the use case ends (SR-1.2). <br> 3a. Auth Server unavailable or SMS cannot be sent: System shows an error and no session is created. <br> 5a. Wrong code: the customer may retry; after 3 wrong codes the use case restarts at step 1. <br> 5b. Code expired (older than 5 minutes): the use case restarts at step 1. |
+| **Postconditions** | Success: an authenticated session exists, the failed-attempt counter is 0, and the code is marked as used. Failure: no session exists and no account data has been shown. |
+
 ### 6.3 UC-02: Create Account
 
 <!-- Owner: Rozyar. Issue #10 -->
+
+| | |
+|---|---|
+| **Use Case ID and Name** | UC-02: Create Account |
+| **Primary Actor** | Customer |
+| **Secondary Actor** | Core Banking Database |
+| **Description** | A logged-in customer opens a new Current Account or Savings Account. The two specialised use cases, Create Current Account and Create Savings Account, follow these steps and differ only in the rules attached to the new account (generalization). |
+| **Traces to** | UR-2; SR-2.1, SR-2.2, SR-2.3 |
+| **Preconditions** | The customer is authenticated (UC-01) and the session is active. |
+| **Main Success Scenario** | 1. Customer selects Create Account. <br> 2. Customer chooses the account type: Current or Savings. <br> 3. System shows the rules of the chosen type: Current, overdraft down to L_max = $500.00 (SR-2.1); Savings, interest I = B × (r / 12) with r = 2.5% (SR-2.2) and minimum balance B_min = $100.00 (SR-2.3). <br> 4. Customer confirms. <br> 5. System creates the account with a unique Account ID, the chosen type, status ACTIVE and the opening balance defined in Section 4.2, and stores it in the Core Banking Database. <br> 6. System shows the new Account ID and type. |
+| **Extensions** | 2a. Customer cancels: no account is created. <br> 4a. Session has expired: System redirects to Log In and no account is created. <br> 5a. Core Banking Database unavailable: System shows "Account could not be created, please try again" and nothing is stored. |
+| **Postconditions** | Success: a new ACTIVE account of the chosen type is linked to the customer, and the rules of its type apply to every later transaction. Failure: no account record exists. |
 
 ### 6.4 UC-03: Withdraw Funds
 
