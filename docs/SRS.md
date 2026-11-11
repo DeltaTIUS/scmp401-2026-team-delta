@@ -201,6 +201,11 @@ All three transactions in this section need an authenticated session (UC-01). A 
 
 <!-- Owner: Rozi. Issue #11 -->
 
+| NFR Category | Metric Property | Target Quantitative Requirement | Validation Method |
+|---|---|---|---|
+| Product (Speed) | Response time | Every balance inquiry (SR-3.3) shall complete in < 1.5 seconds under a load of 50 concurrent requests. | Apache JMeter load test with 50 concurrent threads sending balance inquiries; the maximum response time in the report must be below 1.5 s |
+| Product (Availability) | System uptime | The system shall be available ≥ 99.9% of scheduled business hours in each calendar month. | Server monitoring logs with an uptime check every minute; monthly uptime = successful checks ÷ total checks during business hours |
+
 ### 5.3 Organizational: CI/CD
 
 <!-- Owner: Aiman. Issue #13 -->
