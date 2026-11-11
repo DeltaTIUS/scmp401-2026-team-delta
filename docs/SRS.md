@@ -203,6 +203,10 @@ Different stakeholders read this SRS for different purposes:
 
 <!-- Owner: Sahand. Issue #12 -->
 
+| NFR Category | Metric Property | Target Quantitative Requirement | Validation Method |
+|---|---|---|---|
+| External (Legal) | Audit Trail | Every monetary transaction and every security event (like account lockouts) shall append exactly one immutable log entry containing a timestamp and the User ID: 100% of these events logged, 0 log entries edited or deleted. | Database audit review |
+
 ## 6. Graphical Models and Tabular Use Case Specification
 
 ### 6.1 UML Use Case Diagram
