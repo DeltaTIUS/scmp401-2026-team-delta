@@ -253,6 +253,18 @@ All three transactions in this section need an authenticated session (UC-01). A 
 
 <!-- Owner: Rozi. Issue #11 -->
 
+| | |
+|---|---|
+| **Use Case ID and Name** | UC-04: Check Balance |
+| **Primary Actor** | Customer |
+| **Secondary Actor** | Core Banking Database |
+| **Description** | The customer views the type and current balance of their own accounts. The use case only reads data and never changes it. |
+| **Traces to** | UR-3; SR-3.3 |
+| **Preconditions** | The customer is logged in (UC-01) and the session is active. |
+| **Main Success Scenario** | 1. Customer selects Check Balance. <br> 2. System checks that the session is still valid. <br> 3. System reads the customer's accounts from the Core Banking Database without changing them. <br> 4. System shows each account's ID, type and balance; for a Current Account it also shows available funds = Balance + L_max. |
+| **Extensions** | 2a. Session has expired: System redirects to Log In and no data is shown. <br> 3a. Customer has no accounts: System shows "You have no accounts yet" and offers Create Account. <br> 3b. Customer asks for an account that is not theirs: System shows "Account not available" and no data about it. <br> 3c. Core Banking Database unavailable: System shows "Balance could not be loaded, please try again". |
+| **Postconditions** | The balances are shown within 1.5 seconds (Section 5.2). No data has changed. |
+
 ### 6.6 UC-05: Deposit Funds
 
 <!-- Owner: Rozi. Issue #11 -->
