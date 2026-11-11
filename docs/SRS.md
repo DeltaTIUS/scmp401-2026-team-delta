@@ -103,6 +103,15 @@ Authentication is handled by the Auth Server, which stores the credential record
 
 <!-- Owner: Rozyar. Issue #10 -->
 
+| NFR Category | Metric Property | Target Quantitative Requirement | Validation Method |
+|---|---|---|---|
+| Product (Security) | Data in transit | 100% of network traffic between client and server shall use TLS 1.3; connections offering TLS 1.2 or lower shall be refused. | Wireshark network audit of a full session, plus a forced TLS 1.2 connection attempt that must fail |
+| Product (Security) | Data at rest | Customer and account data stored in the Core Banking Database shall be encrypted with AES-256. | Database configuration review and inspection of the raw storage files |
+| Product (Security) | Password storage | 100% of stored passwords shall be BCrypt hashes with cost factor 12; zero plain-text passwords shall exist in storage or logs. | JUnit test (`AuthenticationTest`) checking the `$2b$12$` hash prefix, and a search of the database and logs for test passwords |
+| Product (Security) | Brute-force protection | An account shall lock after 3 failed password attempts within 5 minutes and stay locked for 15 minutes (SR-1.2). | JUnit test (`AuthenticationTest`) using a controllable clock |
+| Product (Security) | Multi-factor authentication | 100% of logins shall pass the one-time verification code (SR-1.3) before any account data is shown. | JUnit test (`AuthenticationTest`), and a manual check that no account page loads with only a password |
+| Product (Security) | Session timeout | An authenticated session shall expire after 15 minutes of inactivity; any later request is sent back to Log In. | Manual test: leave a session idle for 15 minutes, then try to view a balance |
+
 ### 5.2 Product: Speed and Availability
 
 <!-- Owner: Rozi. Issue #11 -->
