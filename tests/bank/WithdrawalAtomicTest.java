@@ -51,4 +51,28 @@ class WithdrawalAtomicTest {
     void expiredSessionWithdrawsNothing() {
         fail(PENDING);
     }
+
+    @Test
+    @Disabled(PENDING)
+    void successfulWithdrawalLeavesOldBalanceMinusAmount() {
+        fail(PENDING);
+    }
+
+    @Test
+    @Disabled(PENDING)
+    void currentAccountAt200CanWithdrawExactly700() {
+        fail(PENDING);
+    }
+
+    @Test
+    @Disabled(PENDING)
+    void currentAccountAt200CanWithdraw650ButNot701() {
+        fail(PENDING);
+    }
+
+    @Test
+    @Disabled(PENDING)
+    void savingsAccountCanBeLeftAtExactly100() {
+        fail(PENDING);
+    }
 }

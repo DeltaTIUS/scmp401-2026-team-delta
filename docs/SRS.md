@@ -17,6 +17,7 @@
 | Version | Date | Description of Changes | Author(s) | Approved By |
 |---|---|---|---|---|
 | v0.1 | 2026-11-11 | Document skeleton | Aiman | |
+| v0.2 | 2026-11-11 | Traceability matrix, change control and CI/CD NFRs | Aiman | Rozyar |
 
 ## 1. Introduction and System Vision
 

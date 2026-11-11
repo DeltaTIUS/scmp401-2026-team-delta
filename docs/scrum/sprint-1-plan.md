@@ -36,6 +36,10 @@ UR-1 (#1), UR-2 (#2), UR-3 (#3), UR-4 (#4), UR-5 (#5). Ordered by dependency: no
 - Test class name follows the assignment brief: `AuthenticationTest.java`.
 - For Milestone 1, customers create their own accounts. Staff account creation is out of scope.
 
+## Project board
+
+https://github.com/orgs/DeltaTIUS/projects/1
+
 ## Standups
 
 Daily updates go on the pinned standup issue, #14.

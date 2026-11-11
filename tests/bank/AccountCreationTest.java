@@ -45,4 +45,10 @@ class AccountCreationTest {
     void savingsAccountHasNoOverdraft() {
         fail(PENDING);
     }
+
+    @Test
+    @Disabled(PENDING)
+    void interestOnMinimumBalance1200Is250() {
+        fail(PENDING);
+    }
 }
