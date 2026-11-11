@@ -168,6 +168,18 @@ All three transactions in this section need an authenticated session (UC-01). A 
 | Exceptions | Insufficient funds (step 4 fails for either account type): the transaction is aborted and rolled back, and the system returns ERR_INSUFFICIENT_FUNDS (Display Overdraft Warning, UC-03). A ≤ $0.00: rejected with ERR_INVALID_AMOUNT before any data is read. Session expired: the customer is sent to Log In and nothing is withdrawn. Account not owned by the customer, or not ACTIVE: rejected with "Account not available" and nothing changes. Database or ledger failure at any step: the whole transaction is rolled back, nothing changes, and "Transaction could not be completed, please try again" is shown. |
 | Examples | Current Account, balance $200.00: $650.00 is allowed (new balance −$450.00); exactly $700.00 is allowed (−$500.00); $701.00 is rejected. Savings Account, balance $500.00: exactly $400.00 is allowed (new balance $100.00); $400.01 is rejected. |
 
+**SR-3.2 [Atomic Deposit]:** The system shall process a deposit of amount A into a customer's own ACTIVE account as a single atomic transaction.
+
+| Field | Specification |
+|---|---|
+| Inputs | Session token; Account ID; deposit amount A in USD. |
+| Processing | 1. Check that the session is valid and A > $0.00. 2. Start a database transaction and lock the account record. 3. Set Balance_new = Balance_old + A. 4. Append a ledger entry (Record Ledger Entry). 5. Commit. If any of steps 2 to 5 fails, roll back the whole transaction. |
+| Outputs | Success: confirmation with the amount deposited and the new balance. Failure: an error code and message (see Exceptions). |
+| Preconditions | The customer is authenticated (UC-01) and the session is valid. The account belongs to the customer. Account status = ACTIVE. |
+| Postconditions | Success: Balance_new = Balance_old + A, and exactly one immutable ledger entry is appended with timestamp, User ID, Account ID, type DEPOSIT, amount A and the new balance. Failure: the balance and the ledger are exactly as before. |
+| Exceptions | A ≤ $0.00: rejected with ERR_INVALID_AMOUNT and nothing changes. Session expired: the customer is sent to Log In and nothing is deposited. Account not owned by the customer, or not ACTIVE: rejected with "Account not available". Database or ledger failure: the whole transaction is rolled back and "Transaction could not be completed, please try again" is shown. |
+| Examples | Current Account, balance −$450.00, deposit $500.00 → new balance $50.00. Deposit $0.00 or −$20.00 → ERR_INVALID_AMOUNT. |
+
 ## 5. Non-Functional Requirements and Metrics
 
 ### 5.1 Product: Security
