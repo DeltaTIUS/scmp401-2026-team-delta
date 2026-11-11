@@ -189,6 +189,43 @@ Authentication is handled by the Auth Server, which stores the credential record
 
 <!-- Owner: Rozi. Issue #11. SR-3.1, SR-3.2, SR-3.3 -->
 
+All three transactions in this section need an authenticated session (UC-01). A session expires after 15 minutes of inactivity (Section 5.1). SR-3.1 and SR-3.2 are atomic. The balance check, the balance update and the ledger entry run as one database transaction, so either all of them take effect or none does. While the transaction runs, the account record is locked. Two transactions on the same account are therefore processed one after the other and cannot both pass the balance check.
+
+**SR-3.1 [Atomic Withdrawal]:** The system shall process a withdrawal of amount A from a customer's own account as a single atomic transaction, and shall allow it only if the balance rule of the account type is met.
+
+| Field | Specification |
+|---|---|
+| Inputs | Session token; Account ID; withdrawal amount A in USD. |
+| Processing | 1. Check that the session is valid and A > $0.00. 2. Start a database transaction and lock the account record. 3. Read the account type and balance (Verify Balance). 4. Apply the rule of the account type. Current Account (SR-2.1): allowed if Balance + L_max ≥ A, with L_max = $500.00. Savings Account (SR-2.3): allowed if Balance − A ≥ B_min, with B_min = $100.00. 5. If allowed: set Balance_new = Balance_old − A, append a ledger entry (Record Ledger Entry) and commit. 6. If not allowed: abort and roll back. |
+| Outputs | Success: confirmation with the amount withdrawn and the new balance. Failure: an error code and message (see Exceptions). |
+| Preconditions | The customer is authenticated (UC-01) and the session is valid. The account belongs to the customer. Account status = ACTIVE. |
+| Postconditions | Success: Balance_new = Balance_old − A, and exactly one immutable ledger entry is appended with timestamp, User ID, Account ID, type WITHDRAWAL, amount A and the new balance (audit rules in Section 5.4). Failure: the balance and the ledger are exactly as they were before the request. |
+| Exceptions | Insufficient funds (step 4 fails for either account type): the transaction is aborted and rolled back, and the system returns ERR_INSUFFICIENT_FUNDS (Display Overdraft Warning, UC-03). A ≤ $0.00: rejected with ERR_INVALID_AMOUNT before any data is read. Session expired: the customer is sent to Log In and nothing is withdrawn. Account not owned by the customer, or not ACTIVE: rejected with "Account not available" and nothing changes. Database or ledger failure at any step: the whole transaction is rolled back, nothing changes, and "Transaction could not be completed, please try again" is shown. |
+| Examples | Current Account, balance $200.00: $650.00 is allowed (new balance −$450.00); exactly $700.00 is allowed (−$500.00); $701.00 is rejected. Savings Account, balance $500.00: exactly $400.00 is allowed (new balance $100.00); $400.01 is rejected. |
+
+**SR-3.2 [Atomic Deposit]:** The system shall process a deposit of amount A into a customer's own ACTIVE account as a single atomic transaction.
+
+| Field | Specification |
+|---|---|
+| Inputs | Session token; Account ID; deposit amount A in USD. |
+| Processing | 1. Check that the session is valid and A > $0.00. 2. Start a database transaction and lock the account record. 3. Set Balance_new = Balance_old + A. 4. Append a ledger entry (Record Ledger Entry). 5. Commit. If any of steps 2 to 5 fails, roll back the whole transaction. |
+| Outputs | Success: confirmation with the amount deposited and the new balance. Failure: an error code and message (see Exceptions). |
+| Preconditions | The customer is authenticated (UC-01) and the session is valid. The account belongs to the customer. Account status = ACTIVE. |
+| Postconditions | Success: Balance_new = Balance_old + A, and exactly one immutable ledger entry is appended with timestamp, User ID, Account ID, type DEPOSIT, amount A and the new balance. Failure: the balance and the ledger are exactly as before. |
+| Exceptions | A ≤ $0.00: rejected with ERR_INVALID_AMOUNT and nothing changes. Session expired: the customer is sent to Log In and nothing is deposited. Account not owned by the customer, or not ACTIVE: rejected with "Account not available". Database or ledger failure: the whole transaction is rolled back and "Transaction could not be completed, please try again" is shown. |
+| Examples | Current Account, balance −$450.00, deposit $500.00 → new balance $50.00. Deposit $0.00 or −$20.00 → ERR_INVALID_AMOUNT. |
+
+**SR-3.3 [Balance Inquiry]:** The system shall show an authenticated customer the type and current balance of each of their own accounts, and shall not change any data while doing so.
+
+| Field | Specification |
+|---|---|
+| Inputs | Session token; optionally one Account ID (if none is given, all of the customer's accounts). |
+| Processing | Check that the session is valid. Read, without changing anything, the accounts linked to the customer's User ID from the Core Banking Database. For each Current Account, compute available funds = Balance + L_max. |
+| Outputs | For each account: Account ID, account type and balance. For a Current Account, also available funds (example: balance −$450.00 → available funds $50.00). |
+| Preconditions | The customer is authenticated (UC-01) and the session is valid. |
+| Postconditions | No balance, account record or ledger entry has changed. The response meets the time limit in Section 5.2. |
+| Exceptions | Session expired: the customer is sent to Log In and no data is shown. Requested Account ID does not belong to the customer: "Account not available" and no data about that account is shown. Customer has no accounts: "You have no accounts yet". Database unavailable: "Balance could not be loaded, please try again". |
+
 ## 5. Non-Functional Requirements and Metrics
 
 ### 5.1 Product: Security
@@ -207,6 +244,11 @@ Authentication is handled by the Auth Server, which stores the credential record
 ### 5.2 Product: Speed and Availability
 
 <!-- Owner: Rozi. Issue #11 -->
+
+| NFR Category | Metric Property | Target Quantitative Requirement | Validation Method |
+|---|---|---|---|
+| Product (Speed) | Response time | Every balance inquiry (SR-3.3) shall complete in < 1.5 seconds under a load of 50 concurrent requests. | Apache JMeter load test with 50 concurrent threads sending balance inquiries; the maximum response time in the report must be below 1.5 s |
+| Product (Availability) | System uptime | The system shall be available ≥ 99.9% of scheduled business hours in each calendar month. | Server monitoring logs with an uptime check every minute; monthly uptime = successful checks ÷ total checks during business hours |
 
 ### 5.3 Organizational: CI/CD
 
@@ -293,13 +335,49 @@ Check Balance, Deposit Funds and Withdraw Funds do not include Log In. Being log
 
 <!-- Owner: Rozi. Issue #11 -->
 
+| | |
+|---|---|
+| **Use Case ID and Name** | UC-03: Withdraw Funds |
+| **Primary Actor** | Customer |
+| **Secondary Actor** | Core Banking Database |
+| **Description** | The customer withdraws amount A from one of their own Current or Savings Accounts. The withdrawal is atomic: either it is completed and recorded in the ledger, or it has no effect at all. |
+| **Traces to** | UR-5; SR-3.1, SR-2.1, SR-2.3 |
+| **Preconditions** | The customer is logged in (UC-01) and the session is active. The account belongs to the customer and its status is ACTIVE. |
+| **Main Success Scenario** | 1. Customer selects Withdraw Funds, chooses one of their accounts and enters the amount A. <br> 2. System checks that the session is still valid and that A > $0.00. <br> 3. System executes Verify Balance (`<<include>>`): it reads the balance and account type from the Core Banking Database and applies the rule. Current: Balance + L_max ≥ A (SR-2.1). Savings: Balance − A ≥ B_min (SR-2.3). <br> 4. System deducts A: Balance_new = Balance_old − A. <br> 5. System executes Record Ledger Entry (`<<include>>`): an immutable entry with timestamp, User ID, Account ID, amount and new balance is appended. <br> 6. System commits the transaction and shows the amount withdrawn and the new balance. |
+| **Extensions** | 2a. Session has expired: System redirects to Log In and nothing is withdrawn. <br> 2b. A ≤ $0.00: System shows ERR_INVALID_AMOUNT and returns to step 1; nothing changes. <br> 3a. Funds insufficient: System triggers Display Overdraft Warning (`<<extend>>`). This one extension covers both account types: a Current Account withdrawal that would go beyond the overdraft limit (Balance + L_max < A, so the new balance would fall below −$500.00), and a Savings Account withdrawal that would leave the balance below B_min = $100.00 (Balance − A < B_min). The warning names the rule that failed. The transaction is aborted and rolled back, the system returns ERR_INSUFFICIENT_FUNDS, and nothing changes. <br> 4a. Core Banking Database or ledger failure during steps 4 to 6: the whole transaction is rolled back, System shows "Transaction could not be completed, please try again", and nothing changes. |
+| **Postconditions** | Success: Balance_new = Balance_old − A, and exactly one ledger entry is recorded. Failure: the balance and the ledger are exactly as before. |
+
 ### 6.5 UC-04: Check Balance
 
 <!-- Owner: Rozi. Issue #11 -->
 
+| | |
+|---|---|
+| **Use Case ID and Name** | UC-04: Check Balance |
+| **Primary Actor** | Customer |
+| **Secondary Actor** | Core Banking Database |
+| **Description** | The customer views the type and current balance of their own accounts. The use case only reads data and never changes it. |
+| **Traces to** | UR-3; SR-3.3 |
+| **Preconditions** | The customer is logged in (UC-01) and the session is active. |
+| **Main Success Scenario** | 1. Customer selects Check Balance. <br> 2. System checks that the session is still valid. <br> 3. System reads the customer's accounts from the Core Banking Database without changing them. <br> 4. System shows each account's ID, type and balance; for a Current Account it also shows available funds = Balance + L_max. |
+| **Extensions** | 2a. Session has expired: System redirects to Log In and no data is shown. <br> 3a. Customer has no accounts: System shows "You have no accounts yet" and offers Create Account. <br> 3b. Customer asks for an account that is not theirs: System shows "Account not available" and no data about it. <br> 3c. Core Banking Database unavailable: System shows "Balance could not be loaded, please try again". |
+| **Postconditions** | The balances are shown within 1.5 seconds (Section 5.2). No data has changed. |
+
 ### 6.6 UC-05: Deposit Funds
 
 <!-- Owner: Rozi. Issue #11 -->
+
+| | |
+|---|---|
+| **Use Case ID and Name** | UC-05: Deposit Funds |
+| **Primary Actor** | Customer |
+| **Secondary Actor** | Core Banking Database |
+| **Description** | The customer deposits amount A into one of their own ACTIVE accounts. The deposit is atomic: either it is completed and recorded in the ledger, or it has no effect at all. |
+| **Traces to** | UR-4; SR-3.2 |
+| **Preconditions** | The customer is logged in (UC-01) and the session is active. |
+| **Main Success Scenario** | 1. Customer selects Deposit Funds, chooses one of their accounts and enters the amount A. <br> 2. System checks that the session is still valid and that A > $0.00. <br> 3. System checks that the account belongs to the customer and its status is ACTIVE. <br> 4. System adds A: Balance_new = Balance_old + A. <br> 5. System executes Record Ledger Entry (`<<include>>`): an immutable entry with timestamp, User ID, Account ID, amount and new balance is appended. <br> 6. System commits the transaction and shows the amount deposited and the new balance. |
+| **Extensions** | 2a. Session has expired: System redirects to Log In and nothing is deposited. <br> 2b. A ≤ $0.00: System shows ERR_INVALID_AMOUNT and returns to step 1; nothing changes. <br> 3a. Account is not the customer's or not ACTIVE: System shows "Account not available"; nothing changes. <br> 4a. Core Banking Database or ledger failure during steps 4 to 6: the whole transaction is rolled back, System shows "Transaction could not be completed, please try again", and nothing changes. |
+| **Postconditions** | Success: Balance_new = Balance_old + A, and exactly one ledger entry is recorded. Failure: the balance and the ledger are exactly as before. |
 
 ## 7. Requirements Traceability and Change Control
 
