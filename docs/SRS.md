@@ -180,6 +180,17 @@ All three transactions in this section need an authenticated session (UC-01). A 
 | Exceptions | A ≤ $0.00: rejected with ERR_INVALID_AMOUNT and nothing changes. Session expired: the customer is sent to Log In and nothing is deposited. Account not owned by the customer, or not ACTIVE: rejected with "Account not available". Database or ledger failure: the whole transaction is rolled back and "Transaction could not be completed, please try again" is shown. |
 | Examples | Current Account, balance −$450.00, deposit $500.00 → new balance $50.00. Deposit $0.00 or −$20.00 → ERR_INVALID_AMOUNT. |
 
+**SR-3.3 [Balance Inquiry]:** The system shall show an authenticated customer the type and current balance of each of their own accounts, and shall not change any data while doing so.
+
+| Field | Specification |
+|---|---|
+| Inputs | Session token; optionally one Account ID (if none is given, all of the customer's accounts). |
+| Processing | Check that the session is valid. Read, without changing anything, the accounts linked to the customer's User ID from the Core Banking Database. For each Current Account, compute available funds = Balance + L_max. |
+| Outputs | For each account: Account ID, account type and balance. For a Current Account, also available funds (example: balance −$450.00 → available funds $50.00). |
+| Preconditions | The customer is authenticated (UC-01) and the session is valid. |
+| Postconditions | No balance, account record or ledger entry has changed. The response meets the time limit in Section 5.2. |
+| Exceptions | Session expired: the customer is sent to Log In and no data is shown. Requested Account ID does not belong to the customer: "Account not available" and no data about that account is shown. Customer has no accounts: "You have no accounts yet". Database unavailable: "Balance could not be loaded, please try again". |
+
 ## 5. Non-Functional Requirements and Metrics
 
 ### 5.1 Product: Security
