@@ -205,7 +205,7 @@ Authentication is handled by the Auth Server, which stores the credential record
 - **Processing:** The system computes the new balance as (current balance - A). If the new balance is greater than or equal to -$500.00, the withdrawal is accepted. Otherwise it is rejected. A new Current Account is opened with an opening balance of at least $0.00.
 - **Outputs:** On success, the updated balance. On rejection, the error code ERR_INSUFFICIENT_FUNDS.
 - **Postconditions:** On success, the balance equals the previous balance minus A and one ledger entry is appended. On rejection, nothing changes: no balance change and no ledger entry.
-- **Exceptions:** If the new balance would be lower than -$500.00, the system returns ERR_INSUFFICIENT_FUNDS. If A is not greater than $0.00, the request is rejected as an invalid amount. If the account is a Savings Account, SR-2.3 applies instead and no overdraft is allowed.
+- **Exceptions:** If the new balance would be lower than -$500.00, the system returns ERR_INSUFFICIENT_FUNDS. If A is not greater than $0.00, the system returns ERR_INVALID_AMOUNT. If the account is a Savings Account, SR-2.3 applies instead and no overdraft is allowed.
 
 
 **SR-2.2 [Savings Account Interest]:** The system shall add interest I = B x (r / 12) to every Savings Account on the last calendar day of each month, where B is the lowest daily balance of that account in that month and r = 2.5% per year.
@@ -223,7 +223,7 @@ Authentication is handled by the Auth Server, which stores the credential record
 - **Processing:** For a withdrawal, the system computes (current balance - A). If the result is greater than or equal to $100.00, the withdrawal is accepted. Otherwise it is rejected. For opening, the system accepts the account only if the opening deposit is at least $100.00.
 - **Outputs:** On success, the updated balance or the new account. On rejection of a withdrawal, the error code ERR_INSUFFICIENT_FUNDS.
 - **Postconditions:** On success, the balance is at least $100.00 and one ledger entry is appended. On rejection, nothing changes: no balance change, no ledger entry, no account created.
-- **Exceptions:** If a withdrawal would leave the balance below $100.00, the system returns ERR_INSUFFICIENT_FUNDS. If the opening deposit is below $100.00, the opening request is rejected and no account is created. If A is not greater than $0.00, the request is rejected as an invalid amount.
+- **Exceptions:** If a withdrawal would leave the balance below $100.00, the system returns ERR_INSUFFICIENT_FUNDS. If the opening deposit is below $100.00, the opening request is rejected and no account is created. If A is not greater than $0.00, the system returns ERR_INVALID_AMOUNT.
   
 ### 4.3 Transaction Processing Logic
 
