@@ -16,5 +16,5 @@ We are building a secure web-based banking application that lets authenticated c
 | Aiman | ScrumMaster | [@Aiman2404](https://github.com/Aiman2404) |
 | Rozyar | System Architect & Security Lead | [@Rozyar005](https://github.com/Rozyar005) |
 | Rozi | Back-End & Security | [@RoziW](https://github.com/RoziW) |
-| Sahand | Database | *to be added* |
+| Sahand | Database | [@Sahand-999](https://github.com/Sahand-999)|
 | Ara | UI/UX & Front-End | [@Ara-Mohammed](https://github.com/Ara-Mohammed) |
